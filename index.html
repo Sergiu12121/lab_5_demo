@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casino Royale</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Casino Royale</h1>
+      <button id="toggle-theme">🎲 Toggle Theme</button>
+    </header>
+    <main>
+      <div id="balance-section">
+        <h2>Balance</h2>
+        <p>Current Balance: $<span id="balance">0</span></p>
+        <input type="number" id="add-balance" placeholder="Add balance">
+        <button id="add-balance-btn">Add Balance</button>
+      </div>
+
+      <div id="entity-list">
+        <h2>Your Bets</h2>
+        <ul id="bets"></ul>
+      </div>
+      <div id="history">
+        <h2>Game History</h2>
+        <ul id="game-history"></ul>
+      <div id="games">
+        <h2>Games</h2>
+        <div class="game-thumbnails">
+          <a href="crash.html">
+            <img src="images/crash-game.jpg" alt="Crash Game">
+            <p>🎮 Play Crash</p>
+          </a>
+          <a href="roulette.html">
+            <img src="images/roulette.jpg" alt="Roulette Game">
+            <p>🎲 Play Roulette</p>
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
