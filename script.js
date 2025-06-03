@@ -253,7 +253,7 @@ if (document.title === "Roulette Game") {
     }
 
     // Draw the pointer
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "white";
     ctx.beginPath();
     ctx.moveTo(canvas.width / 2 - 10, canvas.height / 2 - 160);
     ctx.lineTo(canvas.width / 2 + 10, canvas.height / 2 - 160);
@@ -328,26 +328,12 @@ if (document.title === "Roulette Game") {
   drawRouletteWheel(); // Initial draw
 }
 
-// Canvas styling for crash (if not in CSS)
-const style = document.createElement('style');
-style.textContent = `
-  #crash-result, #roulette-result {
-    font-size: 18px;
-    margin-top: 20px;
-  }
-
-  #crash-canvas, #roulette-canvas {
-    background-color: #333;
-    border: 2px solid white;
-    margin-top: 20px;
-  }
-`;
-document.head.appendChild(style);
-
 document.addEventListener("DOMContentLoaded", () => {
   const balanceDisplay = document.getElementById("balance");
   const addBalanceInput = document.getElementById("add-balance");
   const addBalanceBtn = document.getElementById("add-balance-btn");
+  const withdrawBalanceInput = document.getElementById("withdraw-balance");
+  const withdrawBalanceBtn = document.getElementById("withdraw-balance-btn");
 
   // Retrieve balance from localStorage or initialize it
   let balance = parseFloat(localStorage.getItem("balance")) || 0;
@@ -371,6 +357,25 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("balance", balance); // Save balance to localStorage
       updateBalanceDisplay();
       addBalanceInput.value = "";
+    });
+  }
+
+  // Withdraw balance
+  if (withdrawBalanceBtn) {
+    withdrawBalanceBtn.addEventListener("click", () => {
+      const amount = parseFloat(withdrawBalanceInput.value);
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid amount to withdraw.");
+        return;
+      }
+      if (amount > balance) {
+        alert("Insufficient balance.");
+        return;
+      }
+      balance -= amount;
+      localStorage.setItem("balance", balance); // Save balance to localStorage
+      updateBalanceDisplay();
+      withdrawBalanceInput.value = "";
     });
   }
 
@@ -398,4 +403,73 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addWinnings = addWinnings;
 
   updateBalanceDisplay(); // Initialize balance display
+  
+  // Bets mechanism
+  const betsList = document.getElementById("bets");
+  const placeBetBtn = document.getElementById("place-bet-btn");
+  const betAmountInput = document.getElementById("bet-amount");
+  const betCoefInput = document.getElementById("bet-coef");
+  let betHistory = [];
+
+  if (placeBetBtn) {
+    placeBetBtn.addEventListener("click", () => {
+      const amount = parseFloat(betAmountInput.value);
+      const coef = parseFloat(betCoefInput.value);
+
+      if (isNaN(amount) || amount <= 0 || isNaN(coef) || coef < 1) {
+        alert("Enter a valid bet amount and coefficient (≥1).");
+        return;
+      }
+
+      // Deduct balance
+      if (!window.deductBalance(amount)) {
+        alert("Insufficient balance.");
+        return;
+      }
+
+      const betObj = {
+        amount,
+        coef,
+        status: "Pending",
+        result: null
+      };
+
+      // Add to history and keep only last 5
+      betHistory.unshift(betObj);
+      if (betHistory.length > 5) betHistory.pop();
+
+      updateBetsList();
+
+      // Simulate result after 5 seconds
+      setTimeout(() => {
+        // Win chance: 1/coef (like crash game)
+        const win = Math.random() < (1 / coef);
+        betObj.status = win ? "Won" : "Lost";
+        betObj.result = win ? (amount * coef).toFixed(2) : 0;
+        if (win) window.addWinnings(parseFloat(betObj.result));
+        updateBetsList();
+      }, 5000);
+    });
+  }
+
+  function updateBetsList() {
+    betsList.innerHTML = "";
+    betHistory.forEach((bet, idx) => {
+      const li = document.createElement("li");
+      li.textContent = `Bet $${bet.amount} @ x${bet.coef} — ${bet.status}` +
+        (bet.status !== "Pending" ? (bet.status === "Won" ? ` (+$${bet.result})` : " (Lost)") : "");
+
+      // Add delete button
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "❌";
+      delBtn.style.marginLeft = "10px";
+      delBtn.onclick = () => {
+        betHistory.splice(idx, 1);
+        updateBetsList();
+      };
+      li.appendChild(delBtn);
+
+      betsList.appendChild(li);
+    });
+  }
 });
